@@ -1,0 +1,12 @@
+﻿{
+  "repositoryName": "saif2012004/scd_project",
+  "pipelineDirectory": "scd_project",
+  "workspaceDirectory": "scd_project\\scd_project",
+  "repositories": {
+    "saif2012004/scd_project": {
+      "repositoryPath": "scd_project\\scd_project",
+      "lastRunOn": "05/12/2025 04:31:33 +05:00"
+    }
+  },
+  "lastRunOn": "05/12/2025 04:40:53 +05:00"
+}
