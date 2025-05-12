@@ -3,46 +3,46 @@ name: Build and Deploy to Minikube
 on:
   push:
     branches:
-      - main
+      - mainF
 
 jobs:
   build-deploy:
-    runs-on: self-hosted  # Windows runner
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Check Minikube Version
-        shell: pwsh
+        shell: bash
         run: minikube version
 
       - name: Set up Docker to use Minikube's environment
-        shell: pwsh
+        shell: bash
         run: |
           Write-Host "Configuring Docker to use Minikube's daemon..."
           & minikube -p minikube docker-env --shell powershell | Invoke-Expression
 
       - name: Build Backend Docker image
-        shell: pwsh
+        shell: bash
         run: docker build -t your-dockerhub-username/task-manager-backend:latest .
 
       - name: Build Frontend Docker image
-        shell: pwsh
+        shell: bash
         run: docker build -t your-dockerhub-username/task-manager-frontend:latest ./frontend
 
       - name: Login to Docker Hub
-        shell: pwsh
+        shell: bash
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Push Docker images to Docker Hub
-        shell: pwsh
+        shell: bash
         run: |
           docker push your-dockerhub-username/task-manager-backend:latest
           docker push your-dockerhub-username/task-manager-frontend:latest
 
       - name: Deploy to Minikube
-        shell: pwsh
+        shell: bash
         run: |
           kubectl apply -f k8s/namespace.yaml
           kubectl apply -f k8s/secrets.yaml
