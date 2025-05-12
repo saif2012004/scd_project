@@ -13,10 +13,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Check Minikube Version
+        shell: pwsh
+        run: minikube version
+
       - name: Set up Docker to use Minikube's environment
+        shell: pwsh
         run: |
-          echo "Configuring Docker to use Minikube's daemon..."
-          eval $(minikube docker-env)
+          Write-Host "Configuring Docker to use Minikube's daemon..."
+          & minikube -p minikube docker-env --shell powershell | Invoke-Expression
 
       - name: Build Backend Docker image
         run: |
