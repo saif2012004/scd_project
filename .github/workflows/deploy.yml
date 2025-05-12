@@ -13,13 +13,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install PowerShell
+      - name: Install PowerShell (Windows)
         shell: powershell
         run: |
+          # Check if PowerShell Core is already installed
           if (-not (Get-Command pwsh -ErrorAction SilentlyContinue)) {
-              Install-Package -Name PowerShell -Force -Confirm:$false
+              Write-Host "Installing PowerShell Core..."
+              # Download and install PowerShell Core MSI
+              $url = "https://github.com/PowerShell/PowerShell/releases/download/v7.3.6/PowerShell-7.3.6-win-x64.msi"
+              $msiPath = "$env:TEMP\PowerShell.msi"
+              Invoke-WebRequest -Uri $url -OutFile $msiPath
+              Start-Process -Wait -FilePath "msiexec.exe" -ArgumentList "/i", "$msiPath", "/quiet", "/qn", "/norestart"
+              Remove-Item -Path $msiPath -Force
           }
-
+          pwsh --version
       - name: Check Minikube Version
         shell: pwsh
         run: minikube version
