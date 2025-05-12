@@ -7,37 +7,45 @@ on:
 
 jobs:
   build-deploy:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest  # Use Linux runner (recommended for Minikube)
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Check Minikube Version
-        shell: pwsh
-        run: minikube version
+      - name: Install Minikube and dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl apt-transport-https
+          curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+          sudo install minikube-linux-amd64 /usr/local/bin/minikube
+          minikube version
+
+      - name: Start Minikube
+        run: minikube start --driver=docker
 
       - name: Set up Docker to use Minikube's environment
-        shell: pwsh
-        run: |
-          Write-Host "Configuring Docker to use Minikube's daemon..."
-          & minikube -p minikube docker-env --shell powershell | Invoke-Expression
+        run: eval $(minikube docker-env)
 
       - name: Build Backend Docker image
-        run: |
-          docker build -t your-dockerhub-username/task-manager-backend:latest .
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        run: docker build -t $DOCKER_USERNAME/task-manager-backend:latest .
 
       - name: Build Frontend Docker image
-        run: |
-          docker build -t your-dockerhub-username/task-manager-frontend:latest ./frontend
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        run: docker build -t $DOCKER_USERNAME/task-manager-frontend:latest ./frontend
 
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Push Docker images to Docker Hub
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         run: |
-          docker push your-dockerhub-username/task-manager-backend:latest
-          docker push your-dockerhub-username/task-manager-frontend:latest
+          docker push $DOCKER_USERNAME/task-manager-backend:latest
+          docker push $DOCKER_USERNAME/task-manager-frontend:latest
 
       - name: Deploy to Minikube
         run: |
