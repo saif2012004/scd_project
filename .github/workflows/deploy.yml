@@ -7,20 +7,19 @@ on:
 
 jobs:
   build-deploy:
-    runs-on: self-hosted
+    runs-on: self-hosted  # Windows runner
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Install PowerShell
-        run: |  
-         curl -sSL https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -  
-         
-         sudo apt-add-repository https://packages.microsoft.com/ubuntu/20.04/prod
-         sudo apt-get update
-         sudo apt-get install -y powershell
-         
+        shell: powershell
+        run: |
+          if (-not (Get-Command pwsh -ErrorAction SilentlyContinue)) {
+              Install-Package -Name PowerShell -Force -Confirm:$false
+          }
+
       - name: Check Minikube Version
         shell: pwsh
         run: minikube version
@@ -32,22 +31,25 @@ jobs:
           & minikube -p minikube docker-env --shell powershell | Invoke-Expression
 
       - name: Build Backend Docker image
-        run: |
-          docker build -t your-dockerhub-username/task-manager-backend:latest .
+        shell: pwsh
+        run: docker build -t your-dockerhub-username/task-manager-backend:latest .
 
       - name: Build Frontend Docker image
-        run: |
-          docker build -t your-dockerhub-username/task-manager-frontend:latest ./frontend
+        shell: pwsh
+        run: docker build -t your-dockerhub-username/task-manager-frontend:latest ./frontend
 
       - name: Login to Docker Hub
+        shell: pwsh
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Push Docker images to Docker Hub
+        shell: pwsh
         run: |
           docker push your-dockerhub-username/task-manager-backend:latest
           docker push your-dockerhub-username/task-manager-frontend:latest
 
       - name: Deploy to Minikube
+        shell: pwsh
         run: |
           kubectl apply -f k8s/namespace.yaml
           kubectl apply -f k8s/secrets.yaml
